@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science World - Live Classroom</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --bg-light: #f8f9fa;
+            --text-dark: #212529;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Header Navbar */
+        .navbar {
+            background-color: #000000;
+            color: #ffffff;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .navbar span { color: var(--primary-color); }
+        .back-btn {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        /* Main Workspace Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Video Section */
+        .video-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: #000000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        #video-player-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Video Features Overlays */
+        .live-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            display: none;
+            z-index: 10;
+        }
+        .video-meta {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+        }
+
+        /* Chat Section UI */
+        .chat-section {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            text-align: left;
+            background: #fff;
+            border-radius: 8px 8px 0 0;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #fafafa;
+        }
+        .msg {
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 85%;
+            text-align: left;
+            font-size: 14px;
+            border: 1px solid #eee;
+            align-self: flex-start;
+        }
+        .msg.admin-msg {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            align-self: flex-start;
+        }
+        .msg-sender {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 3px;
+            color: #555;
+        }
+        .msg.admin-msg .msg-sender { color: var(--danger-color); }
+        
+        .chat-input-area {
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            background: #fff;
+            border-radius: 0 0 8px 8px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+        }
+        .chat-input-area button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Admin Control Panel Section */
+        .admin-trigger-zone {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .admin-box {
+            display: none;
+            grid-column: 1 / -1;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: left;
+        }
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .control-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+        }
+        select, input[type="range"], input[type="number"] {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        /* Audio Visualizer Level Meter */
+        .eq-bar-container {
+            display: flex;
+            align-items: flex-end;
+            height: 20px;
+            gap: 20px;
+            background: #eee;
+            border-radius: 4px;
+            padding: 5px;
+            position: relative;
+        }
+        .eq-fill {
+            height: 0%;
+            width: 100%;
+            background: var(--primary-color);
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        /* Buttons styling */
+        .btn {
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+        .btn-primary { background: var(--primary-color); color: #fff; }
+        .btn-danger { background: var(--danger-color); color: #fff; }
+        .btn-dark { background: #343a40; color: #fff; }
+        .btn-light { background: transparent; border: 1px solid #ccc; color: #666; font-size: 11px; }
+
+        .admin-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a class="back-btn" href="#">← Back</a>
+        SCIENCE <span>WORLD</span>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="video-section">
+            <div class="video-wrapper">
+                <div class="live-tag" id="liveIndicator">🔴 LIVE</div>
+                <div id="video-player-container"></div>
+            </div>
+            <div class="video-meta" id="classTitle">Unit and Dimensions L-02</div>
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">💬 Live Chat</div>
+            <div class="chat-messages" id="chatBox">
+                </div>
+            <div class="chat-input-area">
+                <input type="text" id="userMsgInput" placeholder="Type your comment...">
+                <button onclick="sendChatMessage(false)">Send</button>
+            </div>
+        </div>
+
+        <div class="admin-trigger-zone">
+            <button class="btn btn-light" onclick="loginAdmin()">🔑 Teacher Console Login</button>
+        </div>
+
+        <div class="admin-box" id="adminControlRoom">
+            <h3 style="margin-top: 0; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">🛠️ Teacher Control Panel</h3>
+            
+            <div class="admin-grid">
+                <div class="control-group">
+                    <label>🎥 Select Camera Resource</label>
+                    <select id="videoSourceSelect"><option>Loading Cameras...</option></select>
+                </div>
+
+                <div class="control-group">
+                    <label>🎙️ Select Microphone</label>
+                    <select id="audioSourceSelect"><option>Loading Mics...</option></select>
+                </div>
+
+                <div class="control-group">
+                    <label>🎚️ Audio Gain (Input Volume)</label>
+                    <input type="range" id="audioGainControl" min="0" max="100" value="70">
+                    <div class="eq-bar-container">
+                        <span style="position:absolute; font-size:10px; left:5px; top:5px; color:#666;">Audio Equalizer Level</span>
+                        <div class="eq-fill" id="eqLevel"></div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>⏱️ Chat Slow Mode (Seconds)</label>
+                    <input type="number" id="slowModeInput" min="0" value="0" placeholder="e.g. 5 seconds delay">
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <button class="btn btn-primary" onclick="startTeacherStream(false)">🎥 Start Webcam Live</button>
+                <button class="btn btn-dark" onclick="startTeacherStream(true)">🖥️ Share Desktop Screen</button>
+                <button class="btn btn-danger" onclick="stopTeacherStream()">🛑 Stop Live Broadcast</button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <input type="text" id="adminMsgInput" placeholder="Send official broadcast announcement..." style="padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button class="btn btn-primary" onclick="sendChatMessage(true)">📣 Broadcast</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.11.0.js"></script>
+
+    <script>
+        // Set Config Key
+        const APP_ID = "4c2760cfc93342bc8403e1c5c999d111"; 
+        const CHANNEL = "science_world_live";
+        const TOKEN = null;
+
+        let rtcClient = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+        let currentTracks = [];
+        let isTeacherLive = false;
+        let lastMessageTime = 0;
+
+        // Auto Load Stream on Entry for Students
+        window.onload = async function() {
+            try {
+                await rtcClient.setClientRole("audience");
+                
+                // Track Dynamic Live Stream Status
+                rtcClient.on("user-published", async (user, mediaType) => {
+                    await rtcClient.subscribe(user, mediaType);
+                    if (mediaType === "video") {
+                        const playerDiv = document.createElement("div");
+                        playerDiv.id = "remote-stream-view";
+                        playerDiv.style.width = "100%";
+                        playerDiv.style.height = "100%";
+                        document.getElementById("video-player-container").innerHTML = "";
+                        document.getElementById("video-player-container").appendChild(playerDiv);
+                        user.videoTrack.play(playerDiv);
+                        document.getElementById("liveIndicator").style.display = "block";
+                    }
+                    if (mediaType === "audio") {
+                        user.audioTrack.play();
+                    }
+                });
+
+                rtcClient.on("user-unpublished", (user, mediaType) => {
+                    if (mediaType === "video") {
+                        document.getElementById("video-player-container").innerHTML = "";
+                        document.getElementById("liveIndicator").style.display = "none";
+                    }
+                });
+
+                await rtcClient.join(APP_ID, CHANNEL, TOKEN, null);
+                getHardwareDevices(); // Fetch devices list in background
+            } catch (err) {
+                console.error("Initialization Failed: ", err);
+            }
+        };
+
+        // Hardware Device Scanning
+        async function getHardwareDevices() {
+            try {
+                const devices = await AgoraRTC.getDevices();
+                const camSelect = document.getElementById("videoSourceSelect");
+                const micSelect = document.getElementById("audioSourceSelect");
+                
+                camSelect.innerHTML = "";
+                micSelect.innerHTML = "";
+
+                devices.forEach(device => {
+                    let option = document.createElement("option");
+                    option.value = device.deviceId;
+                    option.text = device.label || `Device [${device.deviceId.slice(0,5)}]`;
+                    
+                    if (device.kind === "videoinput") {
+                        camSelect.appendChild(option);
+                    } else if (device.kind === "audioinput") {
+                        micSelect.appendChild(option);
+                    }
+                });
+            } catch(e) { console.log("Device access denied or restricted."); }
+        }
+
+        // Authentication for Admin Room
+        function loginAdmin() {
+            let pass = prompt("Enter Teacher Security Key:");
+            if(pass === "admin123") {
+                document.getElementById("adminControlRoom").style.display = "block";
+                document.getElementById("adminControlRoom").scrollIntoView({ behavior: 'smooth' });
+                getHardwareDevices(); 
+            } else if (pass !== null) {
+                alert("Invalid Key Access Verification Denied.");
+            }
+        }
+
+        // Active Broadcasting Controls (Webcam / Desktop Screen Share)
+        async function startTeacherStream(isScreenShare = false) {
+            try {
+                if(isTeacherLive) await stopTeacherStream();
+
+                await rtcClient.setClientRole("host");
+                
+                let videoTrack, audioTrack;
+                let micId = document.getElementById("audioSourceSelect").value;
+                let camId = document.getElementById("videoSourceSelect").value;
+
+                audioTrack = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId: micId });
+
+                if(isScreenShare) {
+                    videoTrack = await AgoraRTC.createScreenVideoTrack();
+                } else {
+                    videoTrack = await AgoraRTC.createCameraVideoTrack({ cameraId: camId });
+                }
+
+                currentTracks = [audioTrack, videoTrack];
+                
+                // Clear and render local preview panel
+                const localContainer = document.createElement("div");
+                localContainer.style.width = "100%";
+                localContainer.style.height = "100%";
+                document.getElementById("video-player-container").innerHTML = "";
+                document.getElementById("video-player-container").appendChild(localContainer);
+                
+                videoTrack.play(localContainer);
+                document.getElementById("liveIndicator").style.display = "block";
+
+                // Publish tracks to dynamic server
+                await rtcClient.publish(currentTracks);
+                isTeacherLive = true;
+
+                // Simulate UI Equalizer Animation Engine
+                startEqualizerEffect();
+
+            } catch(err) {
+                console.error("Broadcasting failed:", err);
+                alert("Failed to initiate media pipeline. Check peripheral choices.");
+            }
+        }
+
+        // Equalizer Volume UI Simulator
+        function startEqualizerEffect() {
+            const eqBar = document.getElementById("eqLevel");
+            const gainSlider = document.getElementById("audioGainControl");
+            setInterval(() => {
+                if(isTeacherLive) {
+                    let baseValue = Math.floor(Math.random() * 40) + 20; 
+                    let multiplier = gainSlider.value / 100;
+                    eqBar.style.height = (baseValue * multiplier) + "%";
+                } else {
+                    eqBar.style.height = "0%";
+                }
+            }, 150);
+        }
+
+        // Disconnect Broadcast Pipeline
+        async function stopTeacherStream() {
+            currentTracks.forEach(track => {
+                track.stop();
+                track.close();
+            });
+            await rtcClient.unpublish();
+            await rtcClient.setClientRole("audience");
+            document.getElementById("video-player-container").innerHTML = "";
+            document.getElementById("liveIndicator").style.display = "none";
+            isTeacherLive = false;
+        }
+
+        // Management Chat Engine with Slowmode & Highlights
+        function sendChatMessage(isAdmin = false) {
+            const chatBox = document.getElementById("chatBox");
+            const slowModeDelay = parseInt(document.getElementById("slowModeInput").value) || 0;
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            if (!isAdmin) {
+                // Check user constraint for Slow Mode
+                if (currentTime - lastMessageTime < slowModeDelay) {
+                    alert(`Slow mode is active. Please wait ${slowModeDelay - (currentTime - lastMessageTime)} seconds.`);
+                    return;
+                }
+                
+                const input = document.getElementById("userMsgInput");
+                if(input.value.trim() === "") return;
+
+                createMessageElement("Student", input.value, false);
+                input.value = "";
+                lastMessageTime = currentTime;
+            } else {
+                const input = document.getElementById("adminMsgInput");
+                if(input.value.trim() === "") return;
+
+                createMessageElement("👑 TEACHER", input.value, true);
+                input.value = "";
+            }
+        }
+
+        function createMessageElement(sender, text, isAdmin) {
+            const chatBox = document.getElementById("chatBox");
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("msg");
+            if(isAdmin) msgDiv.classList.add("admin-msg");
+
+            msgDiv.innerHTML = `<div class="msg-sender">${sender}</div><div>${text}</div>`;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll down
+        }
+    </script>
+</body>
+</html>
