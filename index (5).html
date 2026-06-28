@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science World - Smart TV Lite OS</title>
+    <style>
+        /* --- 1. SYSTEM RESET & PREMIUM LIGHT CORE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9; 
+            color: #1e293b;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- 2. CINEMATIC INTRO (LIGHT MODE) --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .intro-title {
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #0052d4, #4364f7, #6fb1fc);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 3s infinite linear, pulseGrow 2s ease-in-out forwards;
+            opacity: 0;
+            margin-bottom: 40px;
+        }
+
+        .spinner {
+            width: 65px;
+            height: 65px;
+            border: 5px solid rgba(67, 100, 247, 0.1);
+            border-top: 5px solid #4364f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            opacity: 0;
+            animation-delay: 1.2s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes textShine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes pulseGrow {
+            0% { transform: scale(0.9); opacity: 0; filter: blur(5px); }
+            100% { transform: scale(1); opacity: 1; filter: blur(0px); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); opacity: 1; }
+            100% { transform: rotate(360deg); opacity: 1; }
+        }
+
+        /* --- 3. MAIN DASHBOARD --- */
+        #app-dashboard {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 30px 50px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+
+        #app-dashboard.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .header h1 span {
+            color: #4364f7;
+        }
+
+        .clock {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #475569;
+            background: #ffffff;
+            padding: 6px 18px;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- 4. SMART TV HERO BANNER --- */
+        .tv-banner {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #4364f7, #6fb1fc);
+            border-radius: 24px;
+            margin-bottom: 30px;
+            padding: 30px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(67, 100, 247, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tv-banner::after {
+            content: '';
+            position: absolute;
+            right: -50px;
+            bottom: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .tv-banner h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .tv-banner p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* --- 5. APP ROWS ARCHITECTURE --- */
+        .section-container {
+            margin-bottom: 25px;
+        }
+
+        .row-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .row-title::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 18px;
+            background: #4364f7;
+            border-radius: 3px;
+        }
+
+        .apps-row {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 5px;
+            scroll-behavior: smooth;
+            width: 100%;
+        }
+
+        .apps-row::-webkit-scrollbar {
+            display: none; 
+        }
+
+        /* --- 6. CLEAN LIGHT APP CARDS --- */
+        .app-card {
+            flex: 0 0 190px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .app-card img {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+            margin-bottom: 15px;
+            border-radius: 14px;
+        }
+
+        .app-card p {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* LIGHT MODE TV FOCUS GLOW EFFECTS */
+        .app-card:focus {
+            transform: scale(1.1);
+            background: #ffffff;
+            border-color: #4364f7;
+            box-shadow: 0 10px 25px rgba(67, 100, 247, 0.2), 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .app-card:focus p {
+            color: #4364f7;
+        }
+
+        /* --- 7. APP PLAYER SCREEN --- */
+        #app-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000000;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #back-btn {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 100000;
+            background: #ff3344;
+            color: white;
+            border: 2px solid transparent;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #back-btn:focus {
+            background: #ff0017;
+            border-color: #ffffff;
+            transform: scale(1.08);
+            box-shadow: 0 0 25px rgba(255, 51, 68, 0.6);
+        }
+
+        #tv-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #ffffff;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="intro-title">Science World</div>
+        <div class="spinner"></div>
+    </div>
+
+    <div id="app-dashboard">
+        <div class="header">
+            <h1>Science World <span>Store</span></h1>
+            <div class="clock" id="tv-clock">00:00 PM</div>
+        </div>
+
+        <div class="tv-banner">
+            <h2>Welcome to Science World OS</h2>
+            <p>Experience super-fast, lightweight versions of your favorite platforms tailored for Smart TV screens.</p>
+        </div>
+
+        <div class="section-container">
+            <div class="row-title">Special Lite Apps</div>
+            <div id="special-apps-container" class="apps-row">
+                
+                <div class="app-card" tabindex="0" data-url="https://m.youtube.com">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="YouTube Lite">
+                    <p>YouTube Lite</p>
+                </div>
+
+                <div class="app-card" tabindex="0" data-url="https://music.youtube.com">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg" alt="YT Music Lite">
+                    <p>YT Music Lite</p>
+                </div>
+
+                <div class="app-card" tabindex="0" data-url="https://web.whatsapp.com">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp Lite">
+                    <p>WhatsApp Lite</p>
+                </div>
+
+                <div class="app-card" tabindex="0" data-url="https://www.instagram.com/?variant=pastat">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Instagram_logo_2016.svg" alt="Instagram Lite">
+                    <p>Instagram Lite</p>
+                </div>
+
+                <div class="app-card" tabindex="0" data-url="https://www.airtelxstream.in">
+                    <img src="https://assets.airtel.in/static-assets/new-home/img/airtel-red.svg" alt="Xstream Lite" style="background: #000; padding: 5px;">
+                    <p>Xstream Lite</p>
+                </div>
+
+                <div class="app-card" tabindex="0" data-url="https://www.hotstar.com/in">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_Hotstar_logo.svg" alt="JioHotstar Lite" style="background: #0c111b; padding: 5px;">
+                    <p>JioHotstar Lite</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="section-container">
+            <div class="row-title">Cloud Dynamic Apps</div>
+            <div id="more-apps-container" class="apps-row">
+                </div>
+        </div>
+    </div>
+
+    <div id="app-viewer" class="hidden">
+        <button id="back-btn" tabindex="0">← BACK TO STORE</button>
+        <iframe id="tv-iframe" src="" allowfullscreen></iframe>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // INTEGRATED REAL FIREBASE CREDENTIALS
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKqK4WHdJ8N3Kz80gBGCFTIens1YfpN4g",
+            authDomain: "rk-physics-315e6.firebaseapp.com",
+            projectId: "rk-physics-315e6",
+            storageBucket: "rk-physics-315e6.firebasestorage.app",
+            messagingSenderId: "758566110977",
+            appId: "1:758566110977:web:c9a1f10ba61fb1c4087d00"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const moreAppsContainer = document.getElementById('more-apps-container');
+        const splashScreen = document.getElementById('splash-screen');
+        const dashboard = document.getElementById('app-dashboard');
+        const viewer = document.getElementById('app-viewer');
+        const iframe = document.getElementById('tv-iframe');
+        const backBtn = document.getElementById('back-btn');
+
+        // TV OS Clock Logic
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('tv-clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // INTRO TIMING CONTROL
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.classList.add('hidden');
+                    dashboard.classList.add('show');
+                    
+                    // Auto Focus on YouTube Lite card for quick start
+                    const firstApp = document.querySelector('.app-card');
+                    if (firstApp) firstApp.focus();
+                }, 800);
+            }, 3000); 
+        });
+
+        // Firebase Cloud Integration
+        async function fetchFirebaseApps() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "apps"));
+                
+                if (querySnapshot.empty) {
+                    renderCard("Wikipedia Lite", "https://en.m.wikipedia.org", "https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo-v2.svg");
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const appData = doc.data();
+                        renderCard(appData.name, appData.url, appData.icon);
+                    });
+                }
+            } catch (err) {
+                console.error("Firebase load issue: ", err);
+            }
+        }
+
+        // Render Cards inside Cloud row
+        function renderCard(name, url, icon) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.tabIndex = 0;
+
+            card.innerHTML = `
+                <img src="${icon}" alt="${name}" onerror="this.src='https://via.placeholder.com/100?text=App'">
+                <p>${name}</p>
+            `;
+
+            setupCardEvents(card, url);
+            moreAppsContainer.appendChild(card);
+        }
+
+        function setupCardEvents(card, url) {
+            card.addEventListener('click', () => bootApp(url));
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') bootApp(url);
+            });
+        }
+
+        // Attach event listener to hardcoded Special Apps
+        document.querySelectorAll('.app-card').forEach(card => {
+            const url = card.getAttribute('data-url');
+            if (url) setupCardEvents(card, url);
+        });
+
+        // Boot & Shut Web Apps
+        let lastFocusedElement;
+        function bootApp(url) {
+            lastFocusedElement = document.activeElement;
+            iframe.src = url;
+            dashboard.classList.add('hidden');
+            viewer.classList.remove('hidden');
+            backBtn.focus();
+        }
+
+        function closeAppViewer() {
+            iframe.src = "";
+            viewer.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            if (lastFocusedElement) lastFocusedElement.focus();
+        }
+
+        backBtn.addEventListener('click', closeAppViewer);
+        backBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') closeAppViewer();
+        });
+
+        // Smart TV Remote Back Key Fix
+        window.addEventListener('keydown', (e) => {
+            if ((e.key === 'Backspace' || e.key === 'Escape') && !viewer.classList.contains('hidden')) {
+                e.preventDefault();
+                closeAppViewer();
+            }
+        });
+
+        fetchFirebaseApps();
+    </script>
+</body>
+</html>
