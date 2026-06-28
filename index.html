@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone Login</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#f4f4f4;
+}
+.box{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    width:300px;
+    text-align:center;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    box-sizing:border-box;
+}
+button{
+    width:100%;
+    padding:10px;
+    background:#007bff;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+button:hover{
+    background:#0056b3;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Phone Login</h2>
+
+    <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+
+    <div id="recaptcha-container"></div>
+
+    <button onclick="sendOTP()">Send OTP</button>
+
+    <input type="text" id="otp" placeholder="Enter OTP">
+
+    <button onclick="verifyOTP()">Verify OTP</button>
+
+    <p id="status"></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    getAuth,
+    RecaptchaVerifier,
+    signInWithPhoneNumber
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDzaRQzYM6ldPOrk7D1N9Xl49q2QFwRELQ",
+  authDomain: "live-77303.firebaseapp.com",
+  databaseURL: "https://live-77303-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "live-77303",
+  storageBucket: "live-77303.firebasestorage.app",
+  messagingSenderId: "487516453781",
+  appId: "1:487516453781:web:b343751c5d90d0242b549c",
+  measurementId: "G-1895WSF2DD"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.recaptchaVerifier = new RecaptchaVerifier(
+    auth,
+    "recaptcha-container",
+    {
+        size: "normal"
+    }
+);
+
+window.sendOTP = async function() {
+    const phoneNumber =
+        document.getElementById("phoneNumber").value;
+
+    try {
+        const confirmationResult =
+            await signInWithPhoneNumber(
+                auth,
+                phoneNumber,
+                window.recaptchaVerifier
+            );
+
+        window.confirmationResult = confirmationResult;
+
+        document.getElementById("status").innerText =
+            "OTP Sent Successfully!";
+    } catch (error) {
+        document.getElementById("status").innerText =
+            error.message;
+    }
+};
+
+window.verifyOTP = async function() {
+    const code = document.getElementById("otp").value;
+
+    try {
+        const result =
+            await window.confirmationResult.confirm(code);
+
+        document.getElementById("status").innerText =
+            "Login Success: " + result.user.phoneNumber;
+
+        console.log(result.user);
+
+    } catch (error) {
+        document.getElementById("status").innerText =
+            "Invalid OTP";
+    }
+};
+</script>
+
+</body>
+</html>
